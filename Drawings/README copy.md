@@ -1,6 +1,6 @@
 # Drawings
 
-### FreeForm Board Link (Read-only):   [https://www.icloud.com/freeform/0d7-AgO5XcIuP6JuOMwzpV_Og#Feed-Forward-NN-from-Scratch](url)
+### FreeForm Board Link (Read-only):   [FreeForm Board](https://www.icloud.com/freeform/0d7-AgO5XcIuP6JuOMwzpV_Og#Feed-Forward-NN-from-Scratch)
 
 The link above gives direct access to the Freeform board where I worked on mathematically proving how a feed-forward neural network works.
 
