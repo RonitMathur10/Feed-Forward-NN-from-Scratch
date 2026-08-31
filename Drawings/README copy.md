@@ -1,6 +1,7 @@
-# Developing Feed-Forward Neural Network from Scratch (NO AI).
+# Drawings
 
+### FreeForm Board Link (Read-only):   [https://www.icloud.com/freeform/0d7-AgO5XcIuP6JuOMwzpV_Og#Feed-Forward-NN-from-Scratch](url)
 
-Completed entire step-by-step process drawing of how the Network works in the "Drawings" folder by myself.
+The link above gives direct access to the Freeform board where I worked on mathematically proving how a feed-forward neural network works.
 
-The drawings contain how the network works mathematically, and I used all that work to write the code.
+Because there are some issues in quality when exporting the Freeform board, I took screenshots and put them in this folder. However, using the link would be the best and easiest way to see my work!
