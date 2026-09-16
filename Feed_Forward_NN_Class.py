@@ -32,8 +32,8 @@ class NN():
         print ("Network Initialized")
     
     def init_learnable_params(self):
-        self.weight_matrices = [] # len = L - 1 (L = # all layers)
-        self.bias_vectors = [] # len = L - 1 (L = # all layers)
+        self.weights = [] # len = L - 1 (L = # all layers)
+        self.biases = [] # len = L - 1 (L = # all layers)
         print ("Initializing Learnable Parameters")
         for index in range(1, self.total_num_layers):
             n_out = int(self.layer_sizes[index])
@@ -43,8 +43,8 @@ class NN():
             b = np.zeros((n_out, 1))
             # b = np.full(n_out, 1.0).reshape(n_out, 1)
             
-            self.weight_matrices.append(W)
-            self.bias_vectors.append(b)
+            self.weights.append(W)
+            self.biases.append(b)
         print ("Learnable Parameters Initialized")
     
     def init_model_functions(self):
@@ -72,12 +72,12 @@ class NN():
                 print ("---------------------------------")
                 print (f"epoch: {epoch}")
                 print (f"accuracy: {prediction_accuracy}")
-                # print ("weights\n", self.weight_matrices, "\n")
+                # print ("weights\n", self.weights, "\n")
 
             if prediction_accuracy > self.best_model_params["accuracy"]:
-                self.best_model_params = {"epoch": epoch, "accuracy": prediction_accuracy, "weights": self.weight_matrices.copy(), "biases": self.bias_vectors.copy()}
+                self.best_model_params = {"epoch": epoch, "accuracy": prediction_accuracy, "weights": self.weights.copy(), "biases": self.biases.copy()}
         
-        self.final_model_params = {"epoch": epochs, "accuracy": prediction_accuracy, "weights": self.weight_matrices.copy(), "biases": self.bias_vectors.copy()}
+        self.final_model_params = {"epoch": epochs, "accuracy": prediction_accuracy, "weights": self.weights.copy(), "biases": self.biases.copy()}
 
         # print ("\n\n", f"epoch # and accuracy of highest accuracy epoch: {np.argmax(self.accuracies_over_all_epochs)}, {self.accuracies_over_all_epochs[np.argmax(self.accuracies_over_all_epochs)]}")
         print ("\n\n", f"Highest Accuracy:\n\tEpoch # = {self.best_model_params["epoch"]}\n\tAccuracy = {self.best_model_params["accuracy"]}")
@@ -93,18 +93,18 @@ class NN():
         self.weighted_sum_matrices = []
         self.activations = [self.X_train] # training_set + activations
         
-        # for (index, weight_matrix) in enumerate(self.weight_matrices):
+        # for (index, weight_matrix) in enumerate(self.weights):
         for index in range(self.num_hidden_layers):
-            Z = self.weight_matrices[index] @ self.activations[index]
-            Z += self.bias_vectors[index] # Z = linear sum --> (W @ X) + b
+            Z = self.weights[index] @ self.activations[index]
+            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
             self.weighted_sum_matrices.append(Z)
             # A = NN.ReLU(Z) # A = activation of Z
             A = NN.leaky_ReLU(Z) # A = activation of Z        USING LEAKY NOW
             self.activations.append(A)
 
         # for the output layer
-        Z = self.weight_matrices[-1] @ self.activations[-1]
-        Z += self.bias_vectors[-1]
+        Z = self.weights[-1] @ self.activations[-1]
+        Z += self.biases[-1]
         self.weighted_sum_matrices.append(Z)
         
         output_probability_matrix_wrong_shape = NN.softmax(Z, axis=0) # softmax activation instead of ReLU, shape: rows=features , cols=datapoints
@@ -139,8 +139,8 @@ class NN():
             prev_layer_weighted_sum_matrix = self.weighted_sum_matrices[index]
             prev_layer_activation_matrix = self.activations[index].T
 
-            # error_gradient = np.dot(self.weight_matrices[index+1].T, error_gradient) * NN.ReLU_derivative(prev_layer_weighted_sum_matrix)
-            error_gradient = np.dot(self.weight_matrices[index+1].T, error_gradient) * NN.leaky_ReLU_derivative(prev_layer_weighted_sum_matrix) # USING LEAKY NOW
+            # error_gradient = np.dot(self.weights[index+1].T, error_gradient) * NN.ReLU_derivative(prev_layer_weighted_sum_matrix)
+            error_gradient = np.dot(self.weights[index+1].T, error_gradient) * NN.leaky_ReLU_derivative(prev_layer_weighted_sum_matrix) # USING LEAKY NOW
 
             dW = np.dot(error_gradient, prev_layer_activation_matrix) / self.num_train_data_points
             dB = np.sum(error_gradient, axis=1, keepdims=True) / self.num_train_data_points
@@ -152,8 +152,8 @@ class NN():
 
     def update_parameters(self):
         for index in range(self.total_num_layers - 1):
-            self.weight_matrices[index] -= self.learning_rate * self.weight_errors[index]
-            self.bias_vectors[index] -= self.learning_rate * self.bias_errors[index]
+            self.weights[index] -= self.learning_rate * self.weight_errors[index]
+            self.biases[index] -= self.learning_rate * self.bias_errors[index]
 
 
     def _predict_for_training(self):
@@ -162,14 +162,14 @@ class NN():
         
         # forward propagation process
         for index in range(self.num_hidden_layers):
-            Z = self.weight_matrices[index] @ forward_prop_prediction_inputs[index]
-            Z += self.bias_vectors[index] # Z = linear sum --> (W @ X) + b
+            Z = self.weights[index] @ forward_prop_prediction_inputs[index]
+            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
             # A = NN.ReLU(Z) # A = activation of Z
             A = NN.leaky_ReLU(Z) # A = activation of Z    USING LEAKY NOW
             forward_prop_prediction_inputs.append(A)
         # for the output layer
-        Z = self.weight_matrices[-1] @ forward_prop_prediction_inputs[-1]
-        Z += self.bias_vectors[-1]
+        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1]
+        Z += self.biases[-1]
         prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
 
         prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
@@ -225,11 +225,11 @@ class NN():
     # Setter Functions
     def set_weights_and_biases(self, type: str):
         if type == "best":
-            self.weight_matrices = self.best_model_params["weights"]
-            self.bias_vectors = self.best_model_params["biases"]
+            self.weights = self.best_model_params["weights"]
+            self.biases = self.best_model_params["biases"]
         elif type == "final":
-            self.weight_matrices = self.final_model_params["weights"]
-            self.bias_vectors = self.final_model_params["biases"]
+            self.weights = self.final_model_params["weights"]
+            self.biases = self.final_model_params["biases"]
     
     def activation(self, function: str):
         if function == "ReLU":
@@ -251,13 +251,13 @@ class NN():
         
         # forward propagation process
         for index in range(self.num_hidden_layers):
-            Z = self.weight_matrices[index] @ forward_prop_prediction_inputs[index]
-            Z += self.bias_vectors[index] # Z = linear sum --> (W @ X) + b
+            Z = self.weights[index] @ forward_prop_prediction_inputs[index]
+            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
             A = NN.ReLU(Z) # A = activation of Z
             forward_prop_prediction_inputs.append(A)
         # for the output layer
-        Z = self.weight_matrices[-1] @ forward_prop_prediction_inputs[-1]
-        Z += self.bias_vectors[-1]
+        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1]
+        Z += self.biases[-1]
         prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
 
         # prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
