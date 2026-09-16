@@ -50,7 +50,7 @@ class NN():
     def init_model_functions(self):
         print ("Initializing Model Functions")
         self.activation_function = NN.ReLU
-        self.activation_function_derivative = NN.leaky_ReLU_derivative
+        self.activation_function_derivative = NN.ReLU_derivative
         # ADD OPTIMIZER, ETC.
         print ("Model Functions Initialized - change as needed")
 
@@ -95,16 +95,14 @@ class NN():
         
         # for (index, weight_matrix) in enumerate(self.weights):
         for index in range(self.num_hidden_layers):
-            Z = self.weights[index] @ self.activations[index]
-            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
+            Z = self.weights[index] @ self.activations[index] + self.biases[index] # Z = linear sum --> (W @ X) + b
             self.weighted_sum_matrices.append(Z)
             # A = NN.ReLU(Z) # A = activation of Z
-            A = NN.leaky_ReLU(Z) # A = activation of Z        USING LEAKY NOW
+            A = self.activation_function(Z) # A = activation of Z 
             self.activations.append(A)
 
         # for the output layer
-        Z = self.weights[-1] @ self.activations[-1]
-        Z += self.biases[-1]
+        Z = self.weights[-1] @ self.activations[-1] + self.biases[-1]
         self.weighted_sum_matrices.append(Z)
         
         output_probability_matrix_wrong_shape = NN.softmax(Z, axis=0) # softmax activation instead of ReLU, shape: rows=features , cols=datapoints
@@ -140,7 +138,7 @@ class NN():
             prev_layer_activation_matrix = self.activations[index].T
 
             # error_gradient = np.dot(self.weights[index+1].T, error_gradient) * NN.ReLU_derivative(prev_layer_weighted_sum_matrix)
-            error_gradient = np.dot(self.weights[index+1].T, error_gradient) * NN.leaky_ReLU_derivative(prev_layer_weighted_sum_matrix) # USING LEAKY NOW
+            error_gradient = np.dot(self.weights[index+1].T, error_gradient) * self.activation_function_derivative(prev_layer_weighted_sum_matrix)
 
             dW = np.dot(error_gradient, prev_layer_activation_matrix) / self.num_train_data_points
             dB = np.sum(error_gradient, axis=1, keepdims=True) / self.num_train_data_points
@@ -162,14 +160,12 @@ class NN():
         
         # forward propagation process
         for index in range(self.num_hidden_layers):
-            Z = self.weights[index] @ forward_prop_prediction_inputs[index]
-            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
+            Z = self.weights[index] @ forward_prop_prediction_inputs[index] + self.biases[index] # Z = linear sum --> (W @ X) + b
             # A = NN.ReLU(Z) # A = activation of Z
-            A = NN.leaky_ReLU(Z) # A = activation of Z    USING LEAKY NOW
+            A = self.activation_function(Z)
             forward_prop_prediction_inputs.append(A)
         # for the output layer
-        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1]
-        Z += self.biases[-1]
+        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1] + self.biases[-1]
         prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
 
         prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
@@ -231,7 +227,7 @@ class NN():
             self.weights = self.final_model_params["weights"]
             self.biases = self.final_model_params["biases"]
     
-    def activation(self, function: str):
+    def set_activation(self, function: str):
         if function == "ReLU":
             self.activation_function = NN.ReLU
             self.activation_function_derivative = NN.ReLU_derivative
@@ -251,13 +247,12 @@ class NN():
         
         # forward propagation process
         for index in range(self.num_hidden_layers):
-            Z = self.weights[index] @ forward_prop_prediction_inputs[index]
-            Z += self.biases[index] # Z = linear sum --> (W @ X) + b
-            A = NN.ReLU(Z) # A = activation of Z
+            Z = self.weights[index] @ forward_prop_prediction_inputs[index] + self.biases[index] # Z = linear sum --> (W @ X) + b
+            # A = NN.ReLU(Z) # A = activation of Z
+            A = self.activation_function(Z)
             forward_prop_prediction_inputs.append(A)
         # for the output layer
-        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1]
-        Z += self.biases[-1]
+        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1] + self.biases[-1]
         prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
 
         # prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
