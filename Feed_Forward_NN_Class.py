@@ -59,6 +59,7 @@ class NN():
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.accuracies_over_all_epochs = np.array([])
+        self.loss_over_all_epochs = np.array([])
         self.best_accuracy = -1
         
         for epoch in range(epochs):
@@ -67,12 +68,15 @@ class NN():
             self.back_prop()
 
             prediction_accuracy = self._predict_for_training()
+            loss = self.calc_loss(self.activations[-1])
+            self.accuracies_over_all_epochs = np.append(self.accuracies_over_all_epochs, prediction_accuracy)
+            self.loss_over_all_epochs = np.append(self.loss_over_all_epochs, loss)
     
             if epoch % 10 == 0:
                 print ("---------------------------------")
-                print (f"epoch: {epoch}")
-                print (f"accuracy: {prediction_accuracy}")
-                # print ("weights\n", self.weights, "\n")
+                print (f"Epoch: {epoch}")
+                print (f"Accuracy: {prediction_accuracy}")
+                print (f"Loss: {loss}")
 
             if prediction_accuracy > self.best_model_params["accuracy"]:
                 self.best_model_params = {"epoch": epoch, "accuracy": prediction_accuracy, "weights": self.weights.copy(), "biases": self.biases.copy()}
@@ -80,7 +84,8 @@ class NN():
         self.final_model_params = {"epoch": epochs, "accuracy": prediction_accuracy, "weights": self.weights.copy(), "biases": self.biases.copy()}
 
         # print ("\n\n", f"epoch # and accuracy of highest accuracy epoch: {np.argmax(self.accuracies_over_all_epochs)}, {self.accuracies_over_all_epochs[np.argmax(self.accuracies_over_all_epochs)]}")
-        print ("\n\n", f"Highest Accuracy:\n\tEpoch # = {self.best_model_params["epoch"]}\n\tAccuracy = {self.best_model_params["accuracy"]}")
+        # "BEST" MODEL DOES NOT CONSIDER LOSS, ONLY ACCURACY
+        print ("\n\n", f"Highest Accuracy:\n\tEpoch # = {self.best_model_params["epoch"]}\n\tAccuracy = {self.best_model_params["accuracy"]}\n\tLoss = {self.loss_over_all_epochs[self.best_model_params["epoch"]]}")
         
 
 
@@ -174,8 +179,7 @@ class NN():
         # final_prediction_accuracy = sum(correct_predictions) / self.num_test_data_points
         final_prediction_accuracy = np.mean(correct_predictions) # np.mean instead of sum() faster for larger datasets
 
-        # if should_append_accuracy:
-        self.accuracies_over_all_epochs = np.append(self.accuracies_over_all_epochs, final_prediction_accuracy)
+        # self.accuracies_over_all_epochs = np.append(self.accuracies_over_all_epochs, final_prediction_accuracy)
 
         return final_prediction_accuracy
         
@@ -214,7 +218,7 @@ class NN():
     def calc_loss(self, outputs):
         eps = 1e-15
         outputs = np.clip(outputs, eps, 1 - eps) # for numerical stability (ensures no log(0)) AND np.clip just bounds everything
-        return -(1/outputs.shape[0]) * np.sum(self.one_hot_Y * np.log(outputs))
+        return -(1/outputs.shape[1]) * np.sum(self.one_hot_Y * np.log(outputs.T))
     
 
 
