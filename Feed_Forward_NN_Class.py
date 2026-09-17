@@ -3,16 +3,17 @@ import numpy as np
 
 class NN():
 
-    def __init__(self, X_train: np.ndarray, Y_train: np.ndarray, X_test: np.ndarray, Y_test: np.ndarray, hidden_layer_sizes: np.ndarray):
+    def __init__(self, model_name: str, X_train: np.ndarray, Y_train: np.ndarray, X_validation: np.ndarray, Y_validation: np.ndarray, hidden_layer_sizes: np.ndarray):
+        self.model_name = model_name
         # data should be: rows=features, cols=datapoints
         self.X_train = X_train
         self.Y_train = Y_train
-        self.X_test = X_test
-        self.Y_test = Y_test
+        self.X_validation = X_validation
+        self.Y_validation = Y_validation
         self.one_hot_Y = NN.one_hot(self.Y_train) # shape: [n x c] --> rows=each datapoint , cols=each class possibility (ie. 0, 1, 2)
         
         self.num_train_data_points = X_train.shape[1]
-        self.num_test_data_points = X_test.shape[1]
+        self.num_test_data_points = X_validation.shape[1]
         self.num_data_points = self.num_train_data_points + self.num_test_data_points
         self.num_hidden_layers = len(hidden_layer_sizes) # one number to indicate # of hidden layers (excluding input & output layers)
         self.total_num_layers = self.num_hidden_layers + 2
@@ -161,7 +162,7 @@ class NN():
 
     def _predict_for_training(self):
         
-        forward_prop_prediction_inputs = [self.X_test] # training_set + activations
+        forward_prop_prediction_inputs = [self.X_validation] # training_set + activations
         
         # forward propagation process
         for index in range(self.num_hidden_layers):
@@ -175,7 +176,7 @@ class NN():
 
         prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
 
-        correct_predictions = prediction_output_classes == self.Y_test.squeeze() # using squeeze to ensure dimensions match
+        correct_predictions = prediction_output_classes == self.Y_validation.squeeze() # using squeeze to ensure dimensions match
         # final_prediction_accuracy = sum(correct_predictions) / self.num_test_data_points
         final_prediction_accuracy = np.mean(correct_predictions) # np.mean instead of sum() faster for larger datasets
 
@@ -245,7 +246,7 @@ class NN():
     def predict(self, X_data=None, Y_data=None):
 
         if X_data is None:
-            forward_prop_prediction_inputs = [self.X_test] # training_set + activations
+            forward_prop_prediction_inputs = [self.X_validation] # training_set + activations
         else:
             forward_prop_prediction_inputs = [X_data] # training_set + activations
         
