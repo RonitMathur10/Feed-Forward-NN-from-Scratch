@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 
 
 class NN():
@@ -23,6 +24,12 @@ class NN():
         np.random.seed(42)
 
         self.best_model_params = {"epoch": -1, "accuracy": -1, "weights": None, "biases": None}
+
+        self.model_save_path = f"/Users/ronitmathur/Desktop/ML/Feed-Forward_NN/Kaggle/Results/{model_name}"
+        temp_path = Path(self.model_save_path)
+        if not temp_path.is_dir():
+            temp_path.mkdir(parents=True)
+            print("Model Save Directory created successfully.")
 
         self.init_network()
 
@@ -224,7 +231,13 @@ class NN():
 
 
     # Setter Functions
-    def set_weights_and_biases(self, type: str):
+
+    def set_loaded_weigths_and_biases(self, weights, biases):
+        self.weights = weights
+        self.biases = biases
+        print ("Weights and Biases set")
+
+    def change_weights_and_biases(self, type: str):
         if type == "best":
             self.weights = self.best_model_params["weights"]
             self.biases = self.best_model_params["biases"]
@@ -239,6 +252,20 @@ class NN():
         elif function == "leaky_ReLU":
             self.activation_function = NN.leaky_ReLUReLU
             self.activation_function_derivative = NN.leaky_ReLU_derivative
+    
+
+
+    # Misc. Functions
+
+    def save_model(self):
+        filepath = self.model_save_path
+        np.save(f"{filepath}/layer_sizes", self.layer_sizes)
+        np.savez_compressed(
+            f"{filepath}/weights_and_biases",
+            *self.weights,
+            *self.biases
+        )
+        print(f"Successfully exported model to {filepath}")
 
 
 
