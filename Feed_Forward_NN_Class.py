@@ -227,7 +227,39 @@ class NN():
         eps = 1e-15
         outputs = np.clip(outputs, eps, 1 - eps) # for numerical stability (ensures no log(0)) AND np.clip just bounds everything
         return -(1/outputs.shape[1]) * np.sum(self.one_hot_Y * np.log(outputs.T))
+
+
+
+    # Final Predict Function!
+    def predict(self, X_data=None, Y_data=None):
+
+        if X_data is None:
+            forward_prop_prediction_inputs = [self.X_validation] # training_set + activations
+        else:
+            forward_prop_prediction_inputs = [X_data] # training_set + activations
+        
+        # forward propagation process
+        for index in range(self.num_hidden_layers):
+            Z = self.weights[index] @ forward_prop_prediction_inputs[index] + self.biases[index] # Z = linear sum --> (W @ X) + b
+            # A = NN.ReLU(Z) # A = activation of Z
+            A = self.activation_function(Z)
+            forward_prop_prediction_inputs.append(A)
+        # for the output layer
+        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1] + self.biases[-1]
+        prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
+
+        # prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
+        prediction_output_classes = np.argmax(prediction_output_probability_matrix, axis=1) # WHAT TO DO FOR OFFSET?
+
+        if Y_data is not None:
+            correct_predictions = prediction_output_classes == Y_data.squeeze() # using squeeze to ensure dimensions match
+            # final_prediction_accuracy = sum(correct_predictions) / self.num_test_data_points
+            final_prediction_accuracy = np.mean(correct_predictions) # np.mean instead of sum() faster for larger datasets
+            return final_prediction_accuracy
+        else:
+            return prediction_output_classes
     
+
 
 
     # Setter Functions
@@ -266,34 +298,3 @@ class NN():
             *self.biases
         )
         print(f"Successfully exported model to {filepath}")
-
-
-
-    # Final Predict Function!
-    def predict(self, X_data=None, Y_data=None):
-
-        if X_data is None:
-            forward_prop_prediction_inputs = [self.X_validation] # training_set + activations
-        else:
-            forward_prop_prediction_inputs = [X_data] # training_set + activations
-        
-        # forward propagation process
-        for index in range(self.num_hidden_layers):
-            Z = self.weights[index] @ forward_prop_prediction_inputs[index] + self.biases[index] # Z = linear sum --> (W @ X) + b
-            # A = NN.ReLU(Z) # A = activation of Z
-            A = self.activation_function(Z)
-            forward_prop_prediction_inputs.append(A)
-        # for the output layer
-        Z = self.weights[-1] @ forward_prop_prediction_inputs[-1] + self.biases[-1]
-        prediction_output_probability_matrix = NN.softmax(Z.T, axis=1)
-
-        # prediction_output_classes = np.argmax(prediction_output_probability_matrix + np.min(self.Y_train), axis=1)
-        prediction_output_classes = np.argmax(prediction_output_probability_matrix, axis=1) # WHAT TO DO FOR OFFSET?
-
-        if Y_data is not None:
-            correct_predictions = prediction_output_classes == Y_data.squeeze() # using squeeze to ensure dimensions match
-            # final_prediction_accuracy = sum(correct_predictions) / self.num_test_data_points
-            final_prediction_accuracy = np.mean(correct_predictions) # np.mean instead of sum() faster for larger datasets
-            return final_prediction_accuracy
-        else:
-            return prediction_output_classes
