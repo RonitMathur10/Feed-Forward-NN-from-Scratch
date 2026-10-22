@@ -5,6 +5,9 @@ from pathlib import Path
 class NN():
 
     def __init__(self, model_name: str, X_train: np.ndarray, Y_train: np.ndarray, X_validation: np.ndarray, Y_validation: np.ndarray, hidden_layer_sizes: np.ndarray):
+
+        # BASICS
+
         self.model_name = model_name
         # data should be: rows=features, cols=datapoints
         self.X_train = X_train
@@ -19,9 +22,12 @@ class NN():
         self.num_hidden_layers = len(hidden_layer_sizes) # one number to indicate # of hidden layers (excluding input & output layers)
         self.total_num_layers = self.num_hidden_layers + 2
         self.layer_sizes = np.append(np.append(X_train.shape[0], hidden_layer_sizes), len(np.unique(Y_train))) # array containing every layer size (including input & output layer)
-        
+
         # self.rng = np.default_rng(seed=42)
         np.random.seed(42)
+
+
+        # MODEL SAVING
 
         self.best_model_params = {"epoch": -1, "accuracy": -1, "weights": None, "biases": None}
 
@@ -30,6 +36,17 @@ class NN():
         if not temp_path.is_dir():
             temp_path.mkdir(parents=True)
             print("Model Save Directory created successfully.")
+        
+
+        # DATA
+
+        self.accuracies_over_all_epochs = np.array([])
+        self.loss_over_all_epochs = np.array([])
+        # self.best_accuracy = -1
+        self.dead_neurons_per_layer = {f"layer_{i}": np.array([]) for i in range(self.num_hidden_layers)}
+
+
+        # INIT NETWORK
 
         self.init_network()
 
@@ -66,9 +83,6 @@ class NN():
     def train(self, epochs, learning_rate):
         self.epochs = epochs
         self.learning_rate = learning_rate
-        self.accuracies_over_all_epochs = np.array([])
-        self.loss_over_all_epochs = np.array([])
-        self.best_accuracy = -1
         
         for epoch in range(epochs):
             
@@ -123,7 +137,8 @@ class NN():
 
         for i, Z in enumerate(self.weighted_sum_matrices[:-1]):
             dead_frac = np.mean(Z <= 0)
-            print(f"layer {i}: {dead_frac:.2%} dead neurons")
+            # print(f"layer {i}: {dead_frac:.2%} dead neurons")
+            self.dead_neurons_per_layer[f"layer_{i}"] = np.append(self.dead_neurons_per_layer[f"layer_{i}"], round(100*dead_frac, 2))
 
 
         # each matrix in self.forward_prop_inputs has shape: [output_neurons x datapoints]
