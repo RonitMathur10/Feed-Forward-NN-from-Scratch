@@ -81,3 +81,12 @@ class Sequential(Module):
             x = module(x)
             # counter += 1
         return x
+
+    def parameters(self):
+        parameters = {}
+        # counter = 1
+        for module_key in self._modules.keys():
+            # parameters[f"Layer_{counter}"] = module._parameters
+            parameters[f"Layer_{module_key}"] = self._modules[module_key]._parameters
+
+        return parameters
