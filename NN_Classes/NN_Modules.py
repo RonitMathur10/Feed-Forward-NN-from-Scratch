@@ -82,11 +82,15 @@ class Sequential(Module):
             # counter += 1
         return x
 
+    # def parameters(self):
+    #     parameters = {}
+    #     for module_key in self._modules.keys():
+    #         parameters[f"Layer_{module_key}"] = self._modules[module_key]._parameters
+    #     return parameters
     def parameters(self):
-        parameters = {}
-        # counter = 1
-        for module_key in self._modules.keys():
-            # parameters[f"Layer_{counter}"] = module._parameters
-            parameters[f"Layer_{module_key}"] = self._modules[module_key]._parameters
-
-        return parameters
+        flat_params = {}
+        for module_key, module in self._modules.items():
+            for param_key, param_tensor in module._parameters.items():
+                # creates cleaner string keys like "Layer_0.weight" unlike before
+                flat_params[f"Layer_{module_key}.{param_key}"] = param_tensor
+        return flat_params
