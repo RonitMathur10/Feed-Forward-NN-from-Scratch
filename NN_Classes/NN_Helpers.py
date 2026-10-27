@@ -13,11 +13,17 @@ def get_model_wandb(model):
     model_parameters = model.parameters()
     weights = []
     biases = []
+    # for param in model_parameters.keys():
+    #     temp = model_parameters[param]
+    #     if len(temp) > 0:
+    #         weights.append(temp["weight"].data)
+    #         biases.append(temp["bias"])
     for param in model_parameters.keys():
-        temp = model_parameters[param]
-        if len(temp) > 0:
-            weights.append(temp["weight"].data)
-            biases.append(temp["bias"])
+        if param[-1] == "t":
+            weights.append(model_parameters[param].data)
+        elif param[-1] == "s":
+            biases.append(model_parameters[param].data)
+    return (weights, biases)
 
 
 def calc_dead_neurons(weights):
@@ -32,7 +38,6 @@ def predict(model, data):
     shifted_output_logits = output_logits.data - np.max(output_logits.data, axis=0, keepdims=True) # to keep stable and prevent overflow
     exponents = np.exp(shifted_output_logits)
     probabilities = (exponents / np.sum(exponents, axis=0, keepdims=True)).T
-    print (probabilities.shape)
 
     predictions = np.argmax(probabilities, axis=1)
     return predictions
